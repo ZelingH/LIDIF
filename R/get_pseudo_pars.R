@@ -1,3 +1,4 @@
+#' @export
 get_pseudo_pars <- function(random_per,
                             dat.list,
                             type_list,

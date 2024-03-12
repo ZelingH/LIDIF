@@ -1,2 +1,0 @@
-# LIDIF
-LIDIF R package
