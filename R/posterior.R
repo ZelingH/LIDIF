@@ -1,3 +1,4 @@
+#' @export
 fun_x_h_y_h_joint_y <- function(y, h,
                                 current_est_list,
                                 data_Z, data_X) {

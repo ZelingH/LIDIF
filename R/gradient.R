@@ -1,4 +1,4 @@
-
+#' @export
 target_M_step_i_gradient <- function(i, est_i, y,
                                      current_est_list,int_lower_bound, int_upper_bound,
                                      fun_x,

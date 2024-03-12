@@ -1,3 +1,4 @@
+#' @export
 #' @import foreach
 RUN_est <- function(est_list,
                     dat.list,

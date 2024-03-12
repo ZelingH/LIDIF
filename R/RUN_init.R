@@ -1,3 +1,4 @@
+#' @export
 #' @import foreach
 RUN_init <- function(initial_list,
                      dat.list,
