@@ -2,6 +2,7 @@
 
 export(LIDIF)
 export(getICC)
+export(get_pseudo_pars)
 export(predict_LIDIF)
 export(prepare_data)
 export(summary_LIDIF)
