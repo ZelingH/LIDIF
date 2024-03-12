@@ -16,7 +16,7 @@ fun_x_h_y_h_joint_y_square <- function(y, h,
                     current_est_list = current_est_list,
                     data_Z = data_Z, data_X = data_X)*exp(-y^2L/2L)*y^2/sqrt(2L*pi)
 }
-
+#' @export
 expectation_y_given_x <- function(current_est_list,
                                   int_lower_bound,
                                   int_upper_bound,
@@ -38,7 +38,7 @@ expectation_y_given_x <- function(current_est_list,
   })
   numeritor/denominator
 }
-
+#' @export
 covariance_y_given_x <-  function(current_est_list,
                                   int_lower_bound,
                                   int_upper_bound,

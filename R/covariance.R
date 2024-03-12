@@ -56,6 +56,7 @@ target_M_elementwise_gradient <- function(y, h,
   do.call(c, gradient_all_items)
 }
 
+#' @export
 score_square_x <- function(current_est_list, int_lower_bound = -5L, int_upper_bound = 5L,
                            data_Z, data_X, maxEval = 10) {
 
