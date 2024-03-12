@@ -54,6 +54,7 @@ target_M_step_i <- function(i, est_i, y,
 
 }
 
+#' @export
 target_M_step_i_int <- function(i, est_i, fun_x,
                                 current_est_list, int_lower_bound = -5L, int_upper_bound = 5L,
                                 data_Z, data_X, maxEval = 10L) {
