@@ -21,12 +21,13 @@ Here we provide a sample with details on how to estimate DIF coefficients, varia
 
 You can install the development version of LIDIF like so:
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 library(devtools)
 
 ## install LIDIF function
 
-## install_github("ZelingH/LIDIF")
+install_github("ZelingH/LIDIF")
+
 library(LIDIF)
 ```
 
@@ -46,7 +47,9 @@ The sample data consists of two parts. The first part contains the binary items:
 head(binsurvs$X)
 ```
 
-The second part is the covariate information. We are interested in testing the DIF effects for both `sex` and `age`. The continuous covariate `age` has been standarded. 
+Notice that we ask users to code the binary responses as 0 and 1.
+
+The second part is the covariate information. We are interested in testing the DIF effects for both `sex` and `age`. The continuous covariate `age` has been standardized. 
 
 ```{r}
 head(binsurvs$Z)
@@ -73,7 +76,7 @@ The `LIDIF` function takes the `surv.list` as the model input and you need to sp
 
 Below is the estimating procedures in `LIDIF`. To ensure estimation accuracy, LIDIF has a built-in random initialization procedure. You can skip the random initialization by specifying your own starting point in `init_input`. In random initialization, the default number of repeated samples `init_nums` (m) $=30$, iterations `init_maxit` (k) $= 5$ and the percentage of sampling  `random_per` = $0.05$. These default setting yields accurate estimation results in our simulation studies (1000 samples with 5 items). If you have fewer observations, increasing `random_per` is recommended.
 
-![Estimating procedures](estimation.png)
+(man/figures/estimation.png)
 
 ```{r, results='hide', message=FALSE}
 res = LIDIF(dat.list = surv.list,
@@ -131,7 +134,7 @@ pred = predict_LIDIF(dat.list = surv.list,
 
 
 The histogram of posterior mean:
-```{r}
+```{r posterior-hist}
 hist(pred$est_mean, main = "Histogram of the Latent Variable (Posterior Mean)")
 
 ```
@@ -141,7 +144,7 @@ hist(pred$est_mean, main = "Histogram of the Latent Variable (Posterior Mean)")
 
 Plot the DIF effects for sex using ICC curves:
 
-```{r}
+```{r ICC}
 # specify the covariate matrix
 tt = cbind("age"= c(mean(surv.list$Z[,"age"]),mean(surv.list$Z[,"age"])), # age is set as population average
            "sex" = c(0,1))

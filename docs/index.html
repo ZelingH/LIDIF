@@ -54,10 +54,183 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
+  <main id="main" class="col-md-9"><p><code>LIDIF</code> is designed to detect differential item functioning (DIF) in binary and/or ordinal items.</p>
+<p>Here we provide a sample with details on how to estimate DIF coefficients, variance, predict the latent variable and visualize DIF effects in categorical variables.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>You can install the development version of LIDIF like so:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## install LIDIF function</span></span>
+<span></span>
+<span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ZelingH/LIDIF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">LIDIF</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level1">
+<div class="page-header"><h1 id="sample-data">Sample Data<a class="anchor" aria-label="anchor" href="#sample-data"></a>
+</h1></div>
+<p><code>LIDIF</code> comes with a simulated data set.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load sample data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">binsurvs</span><span class="op">)</span></span></code></pre></div>
+<p>The sample data consists of two parts. The first part contains the binary items:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binsurvs</span><span class="op">$</span><span class="va">X</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   item1 item2 item3</span></span>
+<span><span class="co">#&gt; 1     1     1     0</span></span>
+<span><span class="co">#&gt; 2     1     0     1</span></span>
+<span><span class="co">#&gt; 3     1     0     0</span></span>
+<span><span class="co">#&gt; 4     1     0     1</span></span>
+<span><span class="co">#&gt; 5     0     0     0</span></span>
+<span><span class="co">#&gt; 6     0     1     1</span></span></code></pre></div>
+<p>Notice that we ask users to code the binary responses as 0 and 1.</p>
+<p>The second part is the covariate information. We are interested in testing the DIF effects for both <code>sex</code> and <code>age</code>. The continuous covariate <code>age</code> has been standardized.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binsurvs</span><span class="op">$</span><span class="va">Z</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          age sex</span></span>
+<span><span class="co">#&gt; 1  1.7858561   0</span></span>
+<span><span class="co">#&gt; 2 -0.2906848   0</span></span>
+<span><span class="co">#&gt; 3 -1.6375232   0</span></span>
+<span><span class="co">#&gt; 4  0.7566259   1</span></span>
+<span><span class="co">#&gt; 5 -0.2153077   1</span></span>
+<span><span class="co">#&gt; 6 -0.6620240   1</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="prepare-the-data">Prepare the data<a class="anchor" aria-label="anchor" href="#prepare-the-data"></a>
+</h2>
+<p>In the first step, we sort our sample data into the format of <code>LIDIF</code> function input.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">surv.list</span> <span class="op">=</span> <span class="fu"><a href="reference/prepare_data.html">prepare_data</a></span><span class="op">(</span>X <span class="op">=</span> <span class="va">binsurvs</span><span class="op">$</span><span class="va">X</span>, <span class="co"># item matrix</span></span>
+<span>                         Z <span class="op">=</span> <span class="va">binsurvs</span><span class="op">$</span><span class="va">Z</span> <span class="co"># covariates matrix</span></span>
+<span>                         <span class="op">)</span></span></code></pre></div>
+<p><strong>surv.list</strong> is a list of two components.</p>
+</div>
+<div class="section level2">
+<h2 id="run-lidif-function">Run LIDIF function<a class="anchor" aria-label="anchor" href="#run-lidif-function"></a>
+</h2>
+<p>The <code>LIDIF</code> function takes the <code>surv.list</code> as the model input and you need to specify the types of items (binary or ordinal) in <code>type_list</code> arguments. To improve computational efficiency, <code>LIDIF</code> leverages the benefits of parallel computation and you can specify the number of computing cores in <code>cl_num</code>.</p>
+<p>Below is the estimating procedures in <code>LIDIF</code>. To ensure estimation accuracy, LIDIF has a built-in random initialization procedure. You can skip the random initialization by specifying your own starting point in <code>init_input</code>. In random initialization, the default number of repeated samples <code>init_nums</code> (m) <span class="math inline"> = 30</span>, iterations <code>init_maxit</code> (k) <span class="math inline"> = 5</span> and the percentage of sampling <code>random_per</code> = <span class="math inline">0.05</span>. These default setting yields accurate estimation results in our simulation studies (1000 samples with 5 items). If you have fewer observations, increasing <code>random_per</code> is recommended.</p>
+<p><img src="reference/figures/README-estimation.png" width="100%"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="reference/LIDIF.html">LIDIF</a></span><span class="op">(</span>dat.list <span class="op">=</span> <span class="va">surv.list</span>,</span>
+<span>            cl_num <span class="op">=</span> <span class="fl">2</span>, <span class="co"># number of cores</span></span>
+<span>            type_list <span class="op">=</span> <span class="st">"binary"</span>, <span class="co"># item type</span></span>
+<span>            maxit <span class="op">=</span> <span class="fl">5</span>, <span class="co"># m = 1</span></span>
+<span>            random_per <span class="op">=</span> <span class="fl">0.5</span>, <span class="co"># number of random samples</span></span>
+<span>            init_nums <span class="op">=</span> <span class="fl">10</span>, <span class="co"># k = 2</span></span>
+<span>            init_maxit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><code>LIDIF</code> function returns a list:</p>
+<p>Estimated coefficients:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">coefficients</span></span>
+<span><span class="co">#&gt; $item1</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt; -0.35040012 -0.15330257  0.02454499  1.32842846  0.01397809 -0.50501653 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item2</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt;  -0.7584188   1.0482617   0.7104616   1.6480740  -0.3347585  -1.2945779 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item3</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt;  -0.6730431   0.1606238   0.9090364   1.9988738  -0.3031967  -1.4611568</span></span></code></pre></div>
+<p>Estimated variance:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">variance</span></span>
+<span><span class="co">#&gt; $item1</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt;   0.1922462   0.1024513   0.3923845   0.9567616   1.1531339   5.6940933 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item2</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt;   0.4077751   0.2119354   0.4454055   1.2343915   1.0297240   1.7765825 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item3</span></span>
+<span><span class="co">#&gt; (Intercept)         age         sex           Y       age:Y       sex:Y </span></span>
+<span><span class="co">#&gt;   0.5495628   0.1068510   0.6313915   4.0389546   1.1220826   4.9731839</span></span></code></pre></div>
+<p>and the estimated variance-covariance matrix:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">cov</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="inference-of-the-dif">Inference of the DIF<a class="anchor" aria-label="anchor" href="#inference-of-the-dif"></a>
+</h2>
+<p>Testing for individual DIF effects:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/summary_LIDIF.html">summary_LIDIF</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $item1</span></span>
+<span><span class="co">#&gt;             Loading Estimate         Odds Ratio p_value   FDR BF</span></span>
+<span><span class="co">#&gt; (Intercept)   -0.33    -0.35    0.7 (0.3, 1.66)   0.424 0.764  1</span></span>
+<span><span class="co">#&gt; age           -0.15    -0.15  0.86 (0.46, 1.61)   0.632 0.875  1</span></span>
+<span><span class="co">#&gt; sex            0.02     0.02    1.02 (0.3, 3.5)   0.969 0.990  1</span></span>
+<span><span class="co">#&gt; Y              0.80     1.33 3.78 (0.56, 25.68)   0.174 0.728  1</span></span>
+<span><span class="co">#&gt; age:Y          0.01     0.01  1.01 (0.12, 8.32)   0.990 0.990  1</span></span>
+<span><span class="co">#&gt; sex:Y         -0.45    -0.51  0.6 (0.01, 64.84)   0.832 0.936  1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item2</span></span>
+<span><span class="co">#&gt;             Loading Estimate        Odds Ratio p_value   FDR   BF</span></span>
+<span><span class="co">#&gt; (Intercept)   -0.60    -0.76 0.47 (0.13, 1.64)   0.235 0.728 1.00</span></span>
+<span><span class="co">#&gt; age            0.72     1.05 2.85 (1.16, 7.03)   0.023 0.410 0.41</span></span>
+<span><span class="co">#&gt; sex            0.58     0.71 2.03 (0.55, 7.53)   0.287 0.728 1.00</span></span>
+<span><span class="co">#&gt; Y              0.85     1.65 5.2 (0.59, 45.86)   0.138 0.728 1.00</span></span>
+<span><span class="co">#&gt; age:Y         -0.32    -0.33  0.72 (0.1, 5.23)   0.741 0.930 1.00</span></span>
+<span><span class="co">#&gt; sex:Y         -0.79    -1.29 0.27 (0.02, 3.74)   0.331 0.728 1.00</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item3</span></span>
+<span><span class="co">#&gt;             Loading Estimate          Odds Ratio p_value   FDR BF</span></span>
+<span><span class="co">#&gt; (Intercept)   -0.56    -0.67   0.51 (0.12, 2.18)   0.364 0.728  1</span></span>
+<span><span class="co">#&gt; age            0.16     0.16   1.17 (0.62, 2.23)   0.623 0.875  1</span></span>
+<span><span class="co">#&gt; sex            0.67     0.91  2.48 (0.52, 11.78)   0.253 0.728  1</span></span>
+<span><span class="co">#&gt; Y              0.89     2.00 7.38 (0.14, 379.14)   0.320 0.728  1</span></span>
+<span><span class="co">#&gt; age:Y         -0.29    -0.30   0.74 (0.09, 5.89)   0.775 0.930  1</span></span>
+<span><span class="co">#&gt; sex:Y         -0.83    -1.46     0.23 (0, 18.35)   0.512 0.838  1</span></span></code></pre></div>
+<p>Testing for combined uniform and non-uniform DIF effects for sex:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/summary_LIDIF.html">summary_LIDIF</a></span><span class="op">(</span><span class="va">res</span>, terms <span class="op">=</span> <span class="st">"sex"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $item1</span></span>
+<span><span class="co">#&gt;             X2 df   Pr(&gt;X2)</span></span>
+<span><span class="co">#&gt; sex 0.05206683  2 0.9743025</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item2</span></span>
+<span><span class="co">#&gt;           X2 df   Pr(&gt;X2)</span></span>
+<span><span class="co">#&gt; sex 1.776947  2 0.4112831</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $item3</span></span>
+<span><span class="co">#&gt;           X2 df   Pr(&gt;X2)</span></span>
+<span><span class="co">#&gt; sex 1.313009  2 0.5186612</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="predict-the-latent-variable">Predict the latent variable<a class="anchor" aria-label="anchor" href="#predict-the-latent-variable"></a>
+</h2>
+<p>With the output from <code>LIDIF</code> function, we could predict the latent variable via the posterior mean and its variance via the posterior variance.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="reference/predict_LIDIF.html">predict_LIDIF</a></span><span class="op">(</span>dat.list <span class="op">=</span> <span class="va">surv.list</span>,</span>
+<span>              coefs_list <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">coefficients</span><span class="op">)</span></span></code></pre></div>
+<p>The histogram of posterior mean:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">pred</span><span class="op">$</span><span class="va">est_mean</span>, main <span class="op">=</span> <span class="st">"Histogram of the Latent Variable (Posterior Mean)"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-posterior-hist-1.png" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="item-characteristic-curves-icc">Item Characteristic Curves (ICC)<a class="anchor" aria-label="anchor" href="#item-characteristic-curves-icc"></a>
+</h2>
+<p>Plot the DIF effects for sex using ICC curves:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># specify the covariate matrix</span></span>
+<span><span class="va">tt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">surv.list</span><span class="op">$</span><span class="va">Z</span><span class="op">[</span>,<span class="st">"age"</span><span class="op">]</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">surv.list</span><span class="op">$</span><span class="va">Z</span><span class="op">[</span>,<span class="st">"age"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="co"># age is set as population average</span></span>
+<span>           <span class="st">"sex"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="reference/getICC.html">getICC</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">coefficients</span>,</span>
+<span>       cov_mat <span class="op">=</span> <span class="va">tt</span>,</span>
+<span>       compare_var <span class="op">=</span> <span class="st">"sex"</span>,</span>
+<span>       type_list <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-ICC-1.png" width="100%"></p>
+</div>
+</div>
 
-    'LIDIF' provides analysis tools for detcting differential item functioning (DIF) in both binary and ordinal items.
-    The package includes functions to estimate DIF parameters and their variances, to conduct statistical inference based on chi-square statistics, and to visualize DIF effects in categorical covariates via item characteristics curve (ICC).
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">

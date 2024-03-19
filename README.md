@@ -1,6 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+
 `LIDIF` is designed to detect differential item functioning (DIF) in
 binary and/or ordinal items.
 
@@ -14,11 +15,11 @@ You can install the development version of LIDIF like so:
 
 ``` r
 library(devtools)
-#> Loading required package: usethis
 
 ## install LIDIF function
 
-## install_github("ZelingH/LIDIF")
+install_github("ZelingH/LIDIF")
+
 library(LIDIF)
 ```
 
@@ -45,9 +46,11 @@ head(binsurvs$X)
 #> 6     0     1     1
 ```
 
+Notice that we ask users to code the binary responses as 0 and 1.
+
 The second part is the covariate information. We are interested in
 testing the DIF effects for both `sex` and `age`. The continuous
-covariate `age` has been standarded.
+covariate `age` has been standardized.
 
 ``` r
 head(binsurvs$Z)
@@ -91,10 +94,7 @@ yields accurate estimation results in our simulation studies (1000
 samples with 5 items). If you have fewer observations, increasing
 `random_per` is recommended.
 
-<figure>
-<img src="estimation.png" alt="Estimating procedures" />
-<figcaption aria-hidden="true">Estimating procedures</figcaption>
-</figure>
+<img src="man/figures/README-estimation.png" width="100%" />
 
 ``` r
 res = LIDIF(dat.list = surv.list,
@@ -114,15 +114,15 @@ Estimated coefficients:
 res$coefficients
 #> $item1
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#> -0.09896441 -0.14220189 -0.13848170  1.53566216 -0.39891371 -1.15920147 
+#> -0.35040012 -0.15330257  0.02454499  1.32842846  0.01397809 -0.50501653 
 #> 
 #> $item2
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#> -0.73900886  1.56726187  0.85542046  1.84016548 -0.01750649  1.18076351 
+#>  -0.7584188   1.0482617   0.7104616   1.6480740  -0.3347585  -1.2945779 
 #> 
 #> $item3
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#>  -0.2900509   0.2068347   0.4526589   1.6536083   0.3269727  -0.3384376
+#>  -0.6730431   0.1606238   0.9090364   1.9988738  -0.3031967  -1.4611568
 ```
 
 Estimated variance:
@@ -131,15 +131,15 @@ Estimated variance:
 res$variance
 #> $item1
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#>  0.20058942  0.09668419  0.26786406  0.96788378  0.29967616  0.96167165 
+#>   0.1922462   0.1024513   0.3923845   0.9567616   1.1531339   5.6940933 
 #> 
 #> $item2
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#>   0.6577958   2.0949710   1.6712815   2.8629129   1.5601336  10.3476645 
+#>   0.4077751   0.2119354   0.4454055   1.2343915   1.0297240   1.7765825 
 #> 
 #> $item3
 #> (Intercept)         age         sex           Y       age:Y       sex:Y 
-#>   0.2714678   0.1684335   0.5008973   2.4776074   1.8841419   3.0304727
+#>   0.5495628   0.1068510   0.6313915   4.0389546   1.1220826   4.9731839
 ```
 
 and the estimated variance-covariance matrix:
@@ -156,30 +156,30 @@ Testing for individual DIF effects:
 summary_LIDIF(res)
 #> $item1
 #>             Loading Estimate         Odds Ratio p_value   FDR BF
-#> (Intercept)   -0.10    -0.10  0.91 (0.38, 2.18)   0.825 0.896  1
-#> age           -0.14    -0.14   0.87 (0.47, 1.6)   0.647 0.896  1
-#> sex           -0.14    -0.14   0.87 (0.32, 2.4)   0.789 0.896  1
-#> Y              0.84     1.54 4.64 (0.68, 31.94)   0.119 0.896  1
-#> age:Y         -0.37    -0.40  0.67 (0.23, 1.96)   0.466 0.896  1
-#> sex:Y         -0.76    -1.16  0.31 (0.05, 2.14)   0.237 0.896  1
+#> (Intercept)   -0.33    -0.35    0.7 (0.3, 1.66)   0.424 0.764  1
+#> age           -0.15    -0.15  0.86 (0.46, 1.61)   0.632 0.875  1
+#> sex            0.02     0.02    1.02 (0.3, 3.5)   0.969 0.990  1
+#> Y              0.80     1.33 3.78 (0.56, 25.68)   0.174 0.728  1
+#> age:Y          0.01     0.01  1.01 (0.12, 8.32)   0.990 0.990  1
+#> sex:Y         -0.45    -0.51  0.6 (0.01, 64.84)   0.832 0.936  1
 #> 
 #> $item2
-#>             Loading Estimate           Odds Ratio p_value   FDR BF
-#> (Intercept)   -0.59    -0.74     0.48 (0.1, 2.34)   0.362 0.896  1
-#> age            0.84     1.57   4.79 (0.28, 81.79)   0.279 0.896  1
-#> sex            0.65     0.86   2.35 (0.19, 29.64)   0.508 0.896  1
-#> Y              0.88     1.84   6.3 (0.23, 173.56)   0.277 0.896  1
-#> age:Y         -0.02    -0.02   0.98 (0.08, 11.37)   0.989 0.989  1
-#> sex:Y          0.76     1.18 3.26 (0.01, 1782.28)   0.714 0.896  1
+#>             Loading Estimate        Odds Ratio p_value   FDR   BF
+#> (Intercept)   -0.60    -0.76 0.47 (0.13, 1.64)   0.235 0.728 1.00
+#> age            0.72     1.05 2.85 (1.16, 7.03)   0.023 0.410 0.41
+#> sex            0.58     0.71 2.03 (0.55, 7.53)   0.287 0.728 1.00
+#> Y              0.85     1.65 5.2 (0.59, 45.86)   0.138 0.728 1.00
+#> age:Y         -0.32    -0.33  0.72 (0.1, 5.23)   0.741 0.930 1.00
+#> sex:Y         -0.79    -1.29 0.27 (0.02, 3.74)   0.331 0.728 1.00
 #> 
 #> $item3
 #>             Loading Estimate          Odds Ratio p_value   FDR BF
-#> (Intercept)   -0.28    -0.29   0.75 (0.27, 2.08)   0.578 0.896  1
-#> age            0.20     0.21   1.23 (0.55, 2.75)   0.614 0.896  1
-#> sex            0.41     0.45    1.57 (0.39, 6.3)   0.522 0.896  1
-#> Y              0.86     1.65 5.23 (0.24, 114.29)   0.293 0.896  1
-#> age:Y          0.31     0.33  1.39 (0.09, 20.44)   0.812 0.896  1
-#> sex:Y         -0.32    -0.34  0.71 (0.02, 21.62)   0.846 0.896  1
+#> (Intercept)   -0.56    -0.67   0.51 (0.12, 2.18)   0.364 0.728  1
+#> age            0.16     0.16   1.17 (0.62, 2.23)   0.623 0.875  1
+#> sex            0.67     0.91  2.48 (0.52, 11.78)   0.253 0.728  1
+#> Y              0.89     2.00 7.38 (0.14, 379.14)   0.320 0.728  1
+#> age:Y         -0.29    -0.30   0.74 (0.09, 5.89)   0.775 0.930  1
+#> sex:Y         -0.83    -1.46     0.23 (0, 18.35)   0.512 0.838  1
 ```
 
 Testing for combined uniform and non-uniform DIF effects for sex:
@@ -187,16 +187,16 @@ Testing for combined uniform and non-uniform DIF effects for sex:
 ``` r
 summary_LIDIF(res, terms = "sex")
 #> $item1
-#>           X2 df   Pr(>X2)
-#> sex 1.579296  2 0.4540045
+#>             X2 df   Pr(>X2)
+#> sex 0.05206683  2 0.9743025
 #> 
 #> $item2
-#>            X2 df   Pr(>X2)
-#> sex 0.4490729  2 0.7988865
+#>           X2 df   Pr(>X2)
+#> sex 1.776947  2 0.4112831
 #> 
 #> $item3
-#>            X2 df   Pr(>X2)
-#> sex 0.4119279  2 0.8138624
+#>           X2 df   Pr(>X2)
+#> sex 1.313009  2 0.5186612
 ```
 
 ## Predict the latent variable
@@ -216,7 +216,7 @@ The histogram of posterior mean:
 hist(pred$est_mean, main = "Histogram of the Latent Variable (Posterior Mean)")
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
+<img src="man/figures/README-posterior-hist-1.png" width="100%" />
 
 ## Item Characteristic Curves (ICC)
 
@@ -234,4 +234,4 @@ getICC(res$coefficients,
        type_list = "binary")
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
+<img src="man/figures/README-ICC-1.png" width="100%" />
