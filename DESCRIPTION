@@ -5,7 +5,8 @@ Version: 0.1.0
 Authors@R: 
     person("Zeling", "He", , "liddyhe@Gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3564-3519"))
-Description: 'LIDIF' provides analysis tools for detcting differential item functioning (DIF) in both binary and ordinal items.
+Description: 
+    'LIDIF' provides analysis tools for detcting differential item functioning (DIF) in both binary and ordinal items.
     The package includes functions to estimate DIF parameters and their variances, to conduct statistical inference based on chi-square statistics, and to visualize DIF effects in categorical covariates via item characteristics curve (ICC).
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -23,3 +24,7 @@ Imports:
     doSNOW
 Depends: 
     R (>= 4.0.2)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

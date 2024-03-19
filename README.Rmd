@@ -1,0 +1,158 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+`LIDIF` is designed to detect differential item functioning (DIF) in binary and/or ordinal items.
+
+Here we provide a sample with details on how to estimate DIF coefficients, variance, predict the latent variable and visualize DIF effects in categorical variables.
+
+## Installation
+
+You can install the development version of LIDIF like so:
+
+```{r, results='hide'}
+library(devtools)
+
+## install LIDIF function
+
+## install_github("ZelingH/LIDIF")
+library(LIDIF)
+```
+
+
+# Sample Data
+
+`LIDIF` comes with a simulated data set.
+
+```{r}
+# load sample data
+data(binsurvs)
+```
+
+The sample data consists of two parts. The first part contains the binary items:
+
+```{r}
+head(binsurvs$X)
+```
+
+The second part is the covariate information. We are interested in testing the DIF effects for both `sex` and `age`. The continuous covariate `age` has been standarded. 
+
+```{r}
+head(binsurvs$Z)
+
+```
+
+
+## Prepare the data
+
+In the first step, we sort our sample data into the format of  `LIDIF` function input.
+
+```{r}
+surv.list = prepare_data(X = binsurvs$X, # item matrix
+                         Z = binsurvs$Z # covariates matrix
+                         )
+```
+
+
+**surv.list** is a list of two components.
+
+## Run LIDIF function
+
+The `LIDIF` function takes the `surv.list` as the model input and you need to specify the types of items (binary or ordinal) in `type_list` arguments. To improve computational efficiency, `LIDIF` leverages the benefits of parallel computation and you can specify the number of computing cores in `cl_num`.
+
+Below is the estimating procedures in `LIDIF`. To ensure estimation accuracy, LIDIF has a built-in random initialization procedure. You can skip the random initialization by specifying your own starting point in `init_input`. In random initialization, the default number of repeated samples `init_nums` (m) $=30$, iterations `init_maxit` (k) $= 5$ and the percentage of sampling  `random_per` = $0.05$. These default setting yields accurate estimation results in our simulation studies (1000 samples with 5 items). If you have fewer observations, increasing `random_per` is recommended.
+
+![Estimating procedures](estimation.png)
+
+```{r, results='hide', message=FALSE}
+res = LIDIF(dat.list = surv.list,
+            cl_num = 2, # number of cores
+            type_list = "binary", # item type
+            maxit = 5, # m = 1
+            random_per = 0.5, # number of random samples
+            init_nums = 10, # k = 2
+            init_maxit = 1)
+```
+
+
+`LIDIF` function returns a list:
+
+Estimated coefficients:
+```{r}
+res$coefficients
+```
+
+Estimated variance:
+```{r}
+res$variance
+```
+
+and the estimated variance-covariance matrix:
+```{r, results='hide'}
+res$cov
+```
+
+
+## Inference of the DIF
+
+Testing for individual DIF effects:
+
+```{r}
+summary_LIDIF(res)
+
+```
+
+Testing for combined uniform and non-uniform DIF effects for sex:
+
+```{r}
+summary_LIDIF(res, terms = "sex")
+```
+
+## Predict the latent variable
+
+With the output from `LIDIF` function, we could predict the latent variable via the posterior mean and its variance via the posterior variance.
+
+```{r}
+pred = predict_LIDIF(dat.list = surv.list,
+              coefs_list = res$coefficients)
+
+```
+
+
+The histogram of posterior mean:
+```{r}
+hist(pred$est_mean, main = "Histogram of the Latent Variable (Posterior Mean)")
+
+```
+
+
+## Item Characteristic Curves (ICC)
+
+Plot the DIF effects for sex using ICC curves:
+
+```{r}
+# specify the covariate matrix
+tt = cbind("age"= c(mean(surv.list$Z[,"age"]),mean(surv.list$Z[,"age"])), # age is set as population average
+           "sex" = c(0,1))
+
+
+getICC(res$coefficients,
+       cov_mat = tt,
+       compare_var = "sex",
+       type_list = "binary")
+```
+
+
+
+
